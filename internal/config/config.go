@@ -1,8 +1,8 @@
 package config
 
 import (
-	"ozon_task/pkg/infra"
-	pkglog "ozon_task/pkg/log"
+	"avito_shop/pkg/infra"
+	pkglog "avito_shop/pkg/log"
 	"time"
 )
 
@@ -16,12 +16,7 @@ type HTTPConfig struct {
 
 type Config struct {
 	HTTPServer HTTPConfig           `yaml:"http_server" env-required:"true"`
-	GRPC       GRPCConfig           `yaml:"grpc" env-required:"true"`
 	PG         infra.PostgresConfig `yaml:"postgres" env-required:"true"`
 	Logger     pkglog.Config        `yaml:"logger" env-required:"true"`
-}
-
-type GRPCConfig struct {
-	Port              int           `yaml:"port" env-required:"true"`
-	OperationsTimeout time.Duration `yaml:"operations_timeout" env-default:"5s"`
+	AuthSecret string               `env:"auth_secret" env-required:"true"`
 }

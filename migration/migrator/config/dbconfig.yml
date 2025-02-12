@@ -1,9 +1,0 @@
-docker:
-  dialect: postgres
-  datasource:
-    host=storage
-    dbname=postgres
-    user=postgres
-    password=password
-    sslmode=disable
-  dir: /app/migration/migrations/postgres
