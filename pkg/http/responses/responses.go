@@ -28,7 +28,7 @@ func OK(payload any) *BasicResponse {
 }
 
 type ErrorResponse struct {
-	Message    string `json:"message"`
+	Message    string `json:"errors"`
 	err        error
 	statusCode int
 }

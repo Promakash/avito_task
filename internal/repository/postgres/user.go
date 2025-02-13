@@ -137,6 +137,9 @@ func (r *UserRepository) getTxHistoryTx(ctx context.Context, tx pgx.Tx, id domai
 
 	rows, err := tx.Query(ctx, query, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("UserRepository.getTxHistoryTx: %w", domain.ErrUserNotFound)
+		}
 		return nil, fmt.Errorf("UserRepository.getTxHistoryTx: %w", err)
 	}
 	defer func() { rows.Close() }()
@@ -178,6 +181,9 @@ func (r *UserRepository) getInventoryTx(ctx context.Context, tx pgx.Tx, id domai
 
 	rows, err := tx.Query(ctx, query, id)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("UserRepository.getInventoryTx: %w", domain.ErrUserNotFound)
+		}
 		return nil, fmt.Errorf("UserRepository.getInventoryTx: %w", err)
 	}
 	defer func() { rows.Close() }()

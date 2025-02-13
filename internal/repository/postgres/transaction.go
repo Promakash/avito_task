@@ -93,6 +93,9 @@ func (r *TransactionRepository) BuyItem(ctx context.Context, uid domain.UserID, 
 
 	err = r.addItemToInventory(ctx, dbTx, tx.From, item)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fmt.Errorf("TxRepository.BuyItem: invalid inventory: %w", domain.ErrMerchNotFound)
+		}
 		return fmt.Errorf("TxRepository.BuyItem: %w", err)
 	}
 

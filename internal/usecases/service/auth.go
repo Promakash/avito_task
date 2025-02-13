@@ -30,30 +30,30 @@ func (s *Auth) Login(ctx context.Context, username domain.UserName, password str
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return s.Register(ctx, username, password)
 		}
-		return "", err
+		return "", fmt.Errorf("AuthService.Login: %w", err)
 	}
 
 	if ok := s.compareHash(user.HashedPassword, password); ok {
 		return s.GenerateToken(user)
 	}
 
-	return "", fmt.Errorf("different password hash: %w", domain.ErrUnauthorized)
+	return "", fmt.Errorf("AuthService.Login: different password hash: %w", domain.ErrUnauthorized)
 }
 
 func (s *Auth) Register(ctx context.Context, username domain.UserName, password string) (domain.Token, error) {
-	hashedPasword, err := s.hashPassword(password)
+	hashedPassword, err := s.hashPassword(password)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("AuthService.Register: %w", err)
 	}
 
 	user := domain.User{
 		Name:           username,
-		HashedPassword: hashedPasword,
+		HashedPassword: hashedPassword,
 	}
 
 	id, err := s.userRepo.Put(ctx, user)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("AuthService.Register: %w", err)
 	}
 	user.ID = id
 
@@ -61,7 +61,16 @@ func (s *Auth) Register(ctx context.Context, username domain.UserName, password 
 }
 
 func (s *Auth) GenerateToken(user domain.User) (domain.Token, error) {
-	return libjwt.NewToken(user, s.secret)
+	if user.ID == 0 {
+		return "", fmt.Errorf("AuthService.GenerateToken: %w", errors.New("invalid id"))
+	}
+
+	token, err := libjwt.NewToken(user, s.secret)
+	if err != nil {
+		return "", fmt.Errorf("AuthService.GenerateToken: %w", err)
+	}
+
+	return token, nil
 }
 
 func (s *Auth) ParseToken(token domain.Token) (domain.UserID, error) {
@@ -69,7 +78,7 @@ func (s *Auth) ParseToken(token domain.Token) (domain.UserID, error) {
 
 	val, err := libjwt.ParseToken(token, s.secret)
 	if err != nil {
-		return id, err
+		return id, fmt.Errorf("AuthService.ParseToken: %w", err)
 	}
 
 	return val, nil
