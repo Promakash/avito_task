@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Level     string `yaml:"level" env-default:"info"`
 	Format    string `yaml:"format" env-default:"text"`
-	Directory string `yaml:"directory"`
+	Directory string `yaml:"directory" env-default:""`
 }
 
 func NewLogger(cfg Config) (*slog.Logger, *os.File) {

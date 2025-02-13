@@ -75,12 +75,10 @@ func Unknown(err error) *ErrorResponse {
 	}
 }
 
-const TimeoutError = "Request timeout"
-
-func RequestTimeout(err error) *ErrorResponse {
+func Unauthorized(err error) *ErrorResponse {
 	return &ErrorResponse{
-		statusCode: http.StatusRequestTimeout,
-		Message:    TimeoutError,
+		statusCode: http.StatusUnauthorized,
+		Message:    err.Error(),
 		err:        err,
 	}
 }

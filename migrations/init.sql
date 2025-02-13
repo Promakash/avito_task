@@ -27,8 +27,8 @@ CREATE TABLE employees
     coins           INT          NOT NULL DEFAULT 1000 CHECK (coins >= 0)
 );
 
-INSERT INTO employees (id, username, hashed_password, coins)
-VALUES ('shop', 'SHOP_HASH', 0);
+INSERT INTO employees (username, hashed_password)
+VALUES ('shop', 'SHOP_HASH');
 
 CREATE INDEX idx_employees_username ON employees USING HASH (username);
 
@@ -47,13 +47,13 @@ CREATE TABLE inventory
 CREATE TABLE coin_transactions
 (
     id         SERIAL PRIMARY KEY,
-    from       INT NOT NULL,
-    to         INT NOT NULL,
-    amount     INT NOT NULL CHECK (amount > 0),
+    sender       INT NOT NULL,
+    recipient           INT NOT NULL,
+    amount     INT NOT NULL CHECK (amount >= 0),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    FOREIGN KEY (from) REFERENCES employees (id) ON DELETE CASCADE,
-    FOREIGN KEY (to) REFERENCES employees (id) ON DELETE CASCADE
+    FOREIGN KEY (sender) REFERENCES employees (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient) REFERENCES employees (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_coin_transactions_from ON coin_transactions (from);
-CREATE INDEX idx_coin_transactions_to ON coin_transactions (to);
+CREATE INDEX idx_coin_transactions_sender ON coin_transactions (sender);
+CREATE INDEX idx_coin_transactions_recipient ON coin_transactions (recipient);

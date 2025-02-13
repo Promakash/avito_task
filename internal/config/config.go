@@ -7,11 +7,10 @@ import (
 )
 
 type HTTPConfig struct {
-	Address           string        `yaml:"address" env-required:"true"`
-	ReadTimeout       time.Duration `yaml:"read_timeout" env-default:"5s"`
-	WriteTimeout      time.Duration `yaml:"write_timeout" env-default:"5s"`
-	IdleTimeout       time.Duration `yaml:"idle_timeout" env-default:"30s"`
-	OperationsTimeout time.Duration `yaml:"operations_timeout" env-default:"4s"`
+	Address      string        `yaml:"address" env-required:"true"`
+	ReadTimeout  time.Duration `yaml:"read_timeout" env-default:"5s"`
+	WriteTimeout time.Duration `yaml:"write_timeout" env-default:"5s"`
+	IdleTimeout  time.Duration `yaml:"idle_timeout" env-default:"30s"`
 }
 
 type Config struct {

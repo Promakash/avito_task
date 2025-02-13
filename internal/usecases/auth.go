@@ -5,6 +5,7 @@ import (
 	"context"
 )
 
+//go:generate go run github.com/vektra/mockery/v2@v2.52.1 --name=Auth --filename=auth_service_mock.go
 type Auth interface {
 	Login(ctx context.Context, username domain.UserName, password string) (domain.Token, error)
 	Register(ctx context.Context, username domain.UserName, password string) (domain.Token, error)

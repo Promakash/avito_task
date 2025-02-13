@@ -1,13 +1,13 @@
 package http
 
 import (
+	apihttp "avito_shop/internal/api/http"
+	"avito_shop/internal/config"
+	"avito_shop/internal/usecases"
+	"avito_shop/pkg/http/handlers"
 	"context"
 	"log/slog"
 	"net/http"
-	apihttp "ozon_task/internal/api/http"
-	"ozon_task/internal/config"
-	"ozon_task/internal/usecases"
-	"ozon_task/pkg/http/handlers"
 )
 
 type App struct {
@@ -18,13 +18,24 @@ type App struct {
 func New(
 	log *slog.Logger,
 	APIPath string,
-	service usecases.URL,
+	authService usecases.Auth,
+	userService usecases.User,
+	txService usecases.Transaction,
 	cfg config.HTTPConfig,
 ) *App {
-	urlHandler := apihttp.NewURLHandler(
+	authHandler := apihttp.NewAuthHandler(
 		log,
-		service,
-		cfg.OperationsTimeout,
+		authService,
+	)
+
+	userHandler := apihttp.NewUserHandler(
+		log,
+		userService,
+	)
+
+	txHandler := apihttp.NewTransactionHandler(
+		log,
+		txService,
 	)
 
 	publicHandler := handlers.NewHandler(
@@ -33,10 +44,11 @@ func New(
 		handlers.WithProfilerHandlers(),
 		handlers.WithRequestID(),
 		handlers.WithRecover(),
-		handlers.WithSwagger(),
 		handlers.WithHealthHandler(),
 		handlers.WithErrHandlers(),
-		urlHandler.WithURLHandlers(),
+		authHandler.WithAuthHandlers(),
+		userHandler.WithSecuredUserHandlers(authService),
+		txHandler.WithSecuredTransactionHandlers(authService),
 	)
 
 	srv := &http.Server{

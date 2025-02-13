@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"avito_shop/internal/domain"
 	"avito_shop/internal/usecases"
 	"context"
 	"errors"
@@ -30,4 +31,13 @@ func WithTokenAuth(authService usecases.Auth) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func GetUserIDFromContext(r *http.Request) (domain.UserID, error) {
+	id, ok := r.Context().Value(AuthContextKey).(domain.UserID)
+	if !ok {
+		return 0, ErrContextParsing
+	}
+
+	return id, nil
 }

@@ -51,10 +51,11 @@ func (s *Auth) Register(ctx context.Context, username domain.UserName, password 
 		HashedPassword: hashedPasword,
 	}
 
-	err = s.userRepo.Put(ctx, user)
+	id, err := s.userRepo.Put(ctx, user)
 	if err != nil {
 		return "", err
 	}
+	user.ID = id
 
 	return s.GenerateToken(user)
 }
@@ -71,7 +72,7 @@ func (s *Auth) ParseToken(token domain.Token) (domain.UserID, error) {
 		return id, err
 	}
 
-	return val.(domain.UserID), nil
+	return val, nil
 }
 
 func (s *Auth) hashPassword(password string) (domain.UserHashPass, error) {

@@ -2,12 +2,9 @@ package jwt
 
 import (
 	"avito_shop/internal/domain"
-	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var ErrInvalidAuthToken = errors.New("invalid auth token")
 
 func NewToken(user domain.User, secret string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -23,24 +20,30 @@ func NewToken(user domain.User, secret string) (string, error) {
 	return tokenString, nil
 }
 
-func ParseToken(token, secret string) (any, error) {
+func ParseToken(token, secret string) (domain.UserID, error) {
 	var userID domain.UserID
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %w", ErrInvalidAuthToken)
+			return nil, fmt.Errorf("unexpected signing method: %w", domain.ErrInvalidAuthToken)
 		}
 
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return userID, ErrInvalidAuthToken
+		return userID, domain.ErrInvalidAuthToken
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return userID, ErrInvalidAuthToken
+		return userID, domain.ErrInvalidAuthToken
 	}
 
-	return claims["user_id"], nil
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, fmt.Errorf("missed user_id claim: %w", domain.ErrInvalidAuthToken)
+	}
+	userID = domain.UserID(userIDFloat)
+
+	return userID, nil
 }

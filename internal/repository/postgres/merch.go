@@ -5,6 +5,7 @@ import (
 	"avito_shop/internal/repository"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -29,9 +30,9 @@ func (r *MerchRepository) GetByName(ctx context.Context, name string) (domain.Me
 	err := r.pool.QueryRow(ctx, query, name).Scan(&item.ID, &item.Price)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.Merch{}, domain.ErrMerchNotFound
+			return domain.Merch{}, fmt.Errorf("MerchRepository.GetByName: %w", domain.ErrMerchNotFound)
 		}
-		return domain.Merch{}, domain.ErrMerchNotFound
+		return domain.Merch{}, fmt.Errorf("MerchRepository.GetByName: %w", err)
 	}
 
 	return item, nil

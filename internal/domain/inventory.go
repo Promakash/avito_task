@@ -1,6 +1,6 @@
 package domain
 
 type Inventory struct {
-	Name     string
-	Quantity int
+	Name     string `json:"type"`
+	Quantity int    `json:"quantity"`
 }

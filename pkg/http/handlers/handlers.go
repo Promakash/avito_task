@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	pkgmiddleware "avito_shop/pkg/http/middleware"
+	"avito_shop/pkg/http/responses"
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -9,8 +11,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log/slog"
 	"net/http"
-	pkgmiddleware "ozon_task/pkg/http/middleware"
-	"ozon_task/pkg/http/responses"
 )
 
 type Handler func(*http.Request) responses.Response
