@@ -2,6 +2,7 @@ package config
 
 import (
 	"avito_shop/pkg/infra"
+	"avito_shop/pkg/infra/cache/redis"
 	pkglog "avito_shop/pkg/log"
 	"time"
 )
@@ -16,6 +17,7 @@ type HTTPConfig struct {
 type Config struct {
 	HTTPServer HTTPConfig           `yaml:"http_server" env-required:"true"`
 	PG         infra.PostgresConfig `yaml:"postgres" env-required:"true"`
+	Redis      redis.Config         `yaml:"redis" env-required:"true"`
 	Logger     pkglog.Config        `yaml:"logger" env-required:"true"`
 	AuthSecret string               `env:"auth_secret" env-required:"true"`
 }

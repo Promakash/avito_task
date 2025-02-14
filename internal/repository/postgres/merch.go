@@ -8,19 +8,28 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"sync"
 )
 
 type MerchRepository struct {
-	pool *pgxpool.Pool
+	pool        *pgxpool.Pool
+	cacheByName sync.Map
 }
 
 func NewMerchRepository(dbPool *pgxpool.Pool) repository.Merch {
 	return &MerchRepository{
-		pool: dbPool,
+		pool:        dbPool,
+		cacheByName: sync.Map{},
 	}
 }
 
 func (r *MerchRepository) GetByName(ctx context.Context, name string) (domain.Merch, error) {
+	if val, ok := r.cacheByName.Load(name); ok {
+		if merch, ok := val.(domain.Merch); ok {
+			return merch, nil
+		}
+	}
+
 	item := domain.Merch{Name: name}
 
 	query := `SELECT id, price
@@ -34,6 +43,8 @@ func (r *MerchRepository) GetByName(ctx context.Context, name string) (domain.Me
 		}
 		return domain.Merch{}, fmt.Errorf("MerchRepository.GetByName: %w", err)
 	}
+
+	r.cacheByName.Store(name, item)
 
 	return item, nil
 }

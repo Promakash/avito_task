@@ -40,11 +40,11 @@ func Converter(h Handler) http.HandlerFunc {
 			return
 		}
 
-		writeResponse(w, r, resp)
+		WriteResponse(w, r, resp)
 	}
 }
 
-func writeResponse(w http.ResponseWriter, r *http.Request, response responses.Response) {
+func WriteResponse(w http.ResponseWriter, r *http.Request, response responses.Response) {
 	render.Status(r, response.StatusCode())
 	render.JSON(w, r, response.GetPayload())
 }

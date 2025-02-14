@@ -3,21 +3,34 @@ package postgres
 import (
 	"avito_shop/internal/domain"
 	"avito_shop/internal/repository"
+	"avito_shop/pkg/infra/cache"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"time"
 )
 
 type UserRepository struct {
-	pool *pgxpool.Pool
+	pool              *pgxpool.Pool
+	cacheByName       cache.Cache
+	cacheTTL          time.Duration
+	cacheWriteTimeout time.Duration
 }
 
-func NewUserRepository(dbPool *pgxpool.Pool) repository.User {
+func NewUserRepository(
+	dbPool *pgxpool.Pool,
+	cache cache.Cache,
+	cacheTTL,
+	cacheWriteTimeout time.Duration,
+) repository.User {
 	return &UserRepository{
-		pool: dbPool,
+		pool:              dbPool,
+		cacheByName:       cache,
+		cacheTTL:          cacheTTL,
+		cacheWriteTimeout: cacheWriteTimeout,
 	}
 }
 
@@ -58,11 +71,18 @@ func (r *UserRepository) GetByID(ctx context.Context, id domain.UserID) (domain.
 }
 
 func (r *UserRepository) GetByName(ctx context.Context, name domain.UserName) (domain.User, error) {
-	user := domain.User{Name: name}
+	user := domain.User{}
+	err := r.cacheByName.Get(ctx, name, &user)
+	if err == nil {
+		return user, nil
+	}
+
+	user.Name = name
+
 	query := `SELECT id, hashed_password, coins FROM Employees
               WHERE username = $1`
 
-	err := r.pool.QueryRow(ctx, query, name).Scan(&user.ID, &user.HashedPassword, &user.Info.Coins)
+	err = r.pool.QueryRow(ctx, query, name).Scan(&user.ID, &user.HashedPassword, &user.Info.Coins)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, fmt.Errorf("UserRepository.GetByName: %w", domain.ErrUserNotFound)
@@ -70,7 +90,15 @@ func (r *UserRepository) GetByName(ctx context.Context, name domain.UserName) (d
 		return domain.User{}, fmt.Errorf("UserRepository.GetByName: %w", err)
 	}
 
+	go r.cacheUserByNameAsync(user)
+
 	return user, nil
+}
+
+func (r *UserRepository) cacheUserByNameAsync(user domain.User) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.cacheWriteTimeout)
+	defer cancel()
+	_ = r.cacheByName.Set(ctx, user.Name, user, r.cacheTTL)
 }
 
 func (r *UserRepository) GetInfoByID(ctx context.Context, id domain.UserID) (domain.UserInfo, error) {

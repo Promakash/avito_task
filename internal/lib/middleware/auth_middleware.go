@@ -3,6 +3,8 @@ package middleware
 import (
 	"avito_shop/internal/domain"
 	"avito_shop/internal/usecases"
+	"avito_shop/pkg/http/handlers"
+	resp "avito_shop/pkg/http/responses"
 	"context"
 	"errors"
 	"net/http"
@@ -17,13 +19,13 @@ func WithTokenAuth(authService usecases.Auth) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
 			if token == "" {
-				http.Error(w, "Unauthorized: token is empty", http.StatusUnauthorized)
+				handlers.WriteResponse(w, r, resp.Unauthorized(errors.New("token is empty")))
 				return
 			}
 
 			userID, err := authService.ParseToken(token)
 			if err != nil {
-				http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
+				handlers.WriteResponse(w, r, resp.Unauthorized(errors.New("invalid token")))
 				return
 			}
 

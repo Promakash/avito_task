@@ -7,6 +7,7 @@ import (
 	"avito_shop/internal/usecases/service"
 	pkgconfig "avito_shop/pkg/config"
 	"avito_shop/pkg/infra"
+	pkgredis "avito_shop/pkg/infra/cache/redis"
 	pkglog "avito_shop/pkg/log"
 	"avito_shop/pkg/shutdown"
 	"context"
@@ -36,8 +37,16 @@ func main() {
 	}
 	defer dbPool.Close()
 
+	redisClient, err := pkgredis.NewRedisClient(cfg.Redis)
+	if err != nil {
+		pkglog.Fatal(log, "error while setting new redis connection: ", err)
+	}
+	defer pkgredis.ShutdownClient(redisClient)
+
+	userCache := pkgredis.NewRedisService(redisClient, log)
+
 	txRepo := postgres.NewTransactionRepository(dbPool)
-	userRepo := postgres.NewUserRepository(dbPool)
+	userRepo := postgres.NewUserRepository(dbPool, userCache, cfg.Redis.TTL, cfg.Redis.WriteTimeout)
 	merchRepo := postgres.NewMerchRepository(dbPool)
 
 	authService := service.NewAuth(userRepo, cfg.AuthSecret)

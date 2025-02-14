@@ -11,6 +11,14 @@ postgres:
   password: password
   db_name: shop
 
+redis:
+  host: user-cache
+  port: 6379
+  password: redis
+  TTL: 30m
+  write_timeout: 3s
+  read_timeout: 2s
+
 logger:
   level: debug
   format: json

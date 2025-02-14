@@ -7,6 +7,8 @@ services:
     depends_on:
       storage:
         condition: service_healthy
+      user-cache:
+        condition: service_healthy
     environment:
       - SHOP_CONFIG=config/docker.yml
       - auth_secret=esketiiiiiiit
@@ -39,5 +41,21 @@ services:
       start_period: 10s
     networks:
       - internal
+
+  user-cache:
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    image: redis:latest
+    container_name: user-cache
+    environment:
+      REDIS_PASSWORD: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - internal
+
 networks:
   internal:
