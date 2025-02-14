@@ -5,13 +5,24 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      storage:
+      db:
         condition: service_healthy
       user-cache:
         condition: service_healthy
     environment:
       - SHOP_CONFIG=config/docker.yml
-      - auth_secret=esketiiiiiiit
+      - AUTH_SECRET=very_secret
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=shop
+      - DATABASE_HOST=db
+      - CACHE_PORT=6379
+      - CACHE_PASSWORD=redis
+      - CACHE_HOST=user-cache
+      - CACHE_TTL = 30m
+      - CACHE_WRITE_TIMEOUT = 3s
+      - CACHE_READ_TIMEOUT = 2s
     volumes:
       - ./logs/avito-shop:/app/logs
     healthcheck:
@@ -22,9 +33,9 @@ services:
     networks:
       - internal
 
-  storage:
+  db:
     image: postgres:15.4-alpine
-    container_name: storage
+    container_name: db
     environment:
       POSTGRES_DB: shop
       POSTGRES_USER: postgres
@@ -54,6 +65,20 @@ services:
       REDIS_PASSWORD: redis
     ports:
       - "6379:6379"
+    networks:
+      - internal
+
+  tests:
+    build:
+      dockerfile: tests/Dockerfile
+    depends_on:
+      avito-shop-service:
+        condition: service_healthy
+    environment:
+      - AUTH_SECRET=very_secret
+      - API_PATH=http://avito-shop-service:8080/api
+    profiles:
+      - test
     networks:
       - internal
 

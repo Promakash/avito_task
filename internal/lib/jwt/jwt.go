@@ -2,14 +2,20 @@ package jwt
 
 import (
 	"avito_shop/internal/domain"
+	"errors"
 	"fmt"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func NewToken(user domain.User, secret string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
-	claims := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("error while casting claims")
+	}
+
 	claims["user_id"] = user.ID
 
 	tokenString, err := token.SignedString([]byte(secret))

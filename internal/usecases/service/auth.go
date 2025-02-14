@@ -7,6 +7,7 @@ import (
 	"avito_shop/internal/usecases"
 	"errors"
 	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"context"
@@ -95,9 +96,5 @@ func (s *Auth) hashPassword(password string) (domain.UserHashPass, error) {
 
 func (s *Auth) compareHash(hashedPassword domain.UserHashPass, password string) bool {
 	err := bcrypt.CompareHashAndPassword(hashedPassword, domain.UserHashPass(password))
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }

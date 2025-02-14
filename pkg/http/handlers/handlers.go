@@ -3,14 +3,13 @@ package handlers
 import (
 	pkgmiddleware "avito_shop/pkg/http/middleware"
 	"avito_shop/pkg/http/responses"
-	"errors"
+	"log/slog"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"log/slog"
-	"net/http"
 )
 
 type Handler func(*http.Request) responses.Response
@@ -80,19 +79,6 @@ func WithSwagger() RouterOption {
 	}
 }
 
-func WithErrHandlers() RouterOption {
-	return func(r chi.Router) {
-		r.NotFound(Converter(
-			func(r *http.Request) responses.Response {
-				return responses.NotFound(errors.New("no such path"))
-			}))
-		r.MethodNotAllowed(Converter(
-			func(r *http.Request) responses.Response {
-				return responses.MethodNotAllowed(errors.New("this method is not allowed"))
-			}))
-	}
-}
-
 func WithLogging(logger *slog.Logger) RouterOption {
 	return func(r chi.Router) {
 		r.Use(pkgmiddleware.NewLoggingMiddleware(logger))
@@ -106,7 +92,7 @@ func WithRecover() RouterOption {
 }
 
 func WithProfilerHandlers() RouterOption {
-	return func(r chi.Router) {
+	return func(_ chi.Router) {
 		middleware.Profiler()
 	}
 }
@@ -114,11 +100,5 @@ func WithProfilerHandlers() RouterOption {
 func WithRequestID() RouterOption {
 	return func(r chi.Router) {
 		r.Use(middleware.RequestID)
-	}
-}
-
-func WithMetricsHandler() RouterOption {
-	return func(r chi.Router) {
-		r.Mount("/metrics", promhttp.Handler())
 	}
 }

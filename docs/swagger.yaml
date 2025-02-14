@@ -1,0 +1,200 @@
+definitions:
+  domain.Inventory:
+    properties:
+      quantity:
+        type: integer
+      type:
+        type: string
+    type: object
+  responses.ErrorResponse:
+    properties:
+      errors:
+        type: string
+    type: object
+  types.CoinHistory:
+    properties:
+      received:
+        items:
+          $ref: '#/definitions/types.CoinHistoryIncoming'
+        type: array
+      sent:
+        items:
+          $ref: '#/definitions/types.CoinHistoryUpcoming'
+        type: array
+    type: object
+  types.CoinHistoryIncoming:
+    properties:
+      amount:
+        type: integer
+      fromUser:
+        type: string
+    type: object
+  types.CoinHistoryUpcoming:
+    properties:
+      ToUser:
+        type: string
+      amount:
+        type: integer
+    type: object
+  types.GetInfoResponse:
+    properties:
+      coinHistory:
+        $ref: '#/definitions/types.CoinHistory'
+      coins:
+        type: integer
+      inventory:
+        items:
+          $ref: '#/definitions/domain.Inventory'
+        type: array
+    type: object
+  types.PostAuthRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  types.PostAuthResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  types.PostSendCoinRequest:
+    properties:
+      amount:
+        type: integer
+      toUser:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: API Avito Shop
+  version: 1.0.0
+paths:
+  /api/auth:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные пользователя для авторизации
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная аутентификация
+          schema:
+            $ref: '#/definitions/types.PostAuthResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: Аутентификация и получение JWT-токена
+  /api/buy/{item}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Название товара
+        in: path
+        name: item
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Купить предмет за монеты
+  /api/info:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/types.GetInfoResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить информацию о монетах, инвентаре и истории транзакций
+  /api/sendCoin:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные для отправки монет
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/types.PostSendCoinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "401":
+          description: Неавторизован
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отправить монеты другому пользователю
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

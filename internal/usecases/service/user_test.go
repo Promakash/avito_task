@@ -5,9 +5,10 @@ import (
 	"avito_shop/internal/repository/mocks"
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestPut_Success(t *testing.T) {
@@ -68,71 +69,6 @@ func TestPut_DBError(t *testing.T) {
 		Return(0, errors.New("new DBError"))
 
 	_, err := svc.Put(ctx, user)
-
-	require.Error(t, err)
-	userRepo.AssertExpectations(t)
-}
-
-func TestGetByID_Success(t *testing.T) {
-	t.Parallel()
-
-	userRepo := mocks.NewUser(t)
-	svc := NewUser(userRepo)
-
-	uid := 2
-	user := domain.User{
-		ID:   uid,
-		Name: "AvitoEmployee",
-		Info: domain.UserInfo{
-			Coins: 100,
-		},
-	}
-	ctx := context.Background()
-
-	userRepo.On("GetByID", mock.Anything, uid).
-		Return(user, nil)
-
-	resultUser, err := svc.GetByID(ctx, user.ID)
-
-	require.NoError(t, err)
-	require.Equal(t, user, resultUser)
-	userRepo.AssertExpectations(t)
-}
-
-func TestGetByID_NotFound(t *testing.T) {
-	t.Parallel()
-
-	userRepo := mocks.NewUser(t)
-	svc := NewUser(userRepo)
-
-	uid := 2
-	user := domain.User{}
-	ctx := context.Background()
-
-	userRepo.On("GetByID", mock.Anything, uid).
-		Return(user, domain.ErrUserNotFound)
-
-	_, err := svc.GetByID(ctx, uid)
-
-	require.Error(t, err)
-	require.ErrorIs(t, err, domain.ErrUserNotFound)
-	userRepo.AssertExpectations(t)
-}
-
-func TestGetByID_DBError(t *testing.T) {
-	t.Parallel()
-
-	userRepo := mocks.NewUser(t)
-	svc := NewUser(userRepo)
-
-	uid := 2
-	user := domain.User{}
-	ctx := context.Background()
-
-	userRepo.On("GetByID", mock.Anything, uid).
-		Return(user, errors.New("excellent error from DB"))
-
-	_, err := svc.GetByID(ctx, uid)
 
 	require.Error(t, err)
 	userRepo.AssertExpectations(t)

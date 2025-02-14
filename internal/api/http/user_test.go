@@ -3,13 +3,14 @@ package http
 import (
 	"avito_shop/internal/api/http/types"
 	"avito_shop/internal/domain"
-	"avito_shop/internal/lib/testutils"
 	"avito_shop/internal/usecases/mocks"
+	"avito_shop/pkg/testutils"
 	"errors"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetInfo_Success(t *testing.T) {

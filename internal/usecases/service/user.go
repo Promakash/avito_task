@@ -27,15 +27,6 @@ func (s *User) Put(ctx context.Context, user domain.User) (domain.UserID, error)
 	return uid, nil
 }
 
-func (s *User) GetByID(ctx context.Context, id domain.UserID) (domain.User, error) {
-	user, err := s.repo.GetByID(ctx, id)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("UserService.GetByID: %w", err)
-	}
-
-	return user, nil
-}
-
 func (s *User) GetByName(ctx context.Context, name domain.UserName) (domain.User, error) {
 	user, err := s.repo.GetByName(ctx, name)
 	if err != nil {

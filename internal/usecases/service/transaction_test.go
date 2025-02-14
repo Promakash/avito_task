@@ -5,17 +5,18 @@ import (
 	"avito_shop/internal/repository/mocks"
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSendCoinByName_Success(t *testing.T) {
 	t.Parallel()
 
 	userRepo := mocks.NewUser(t)
-	TxRepo := mocks.NewTransaction(t)
-	svc := NewTransaction(TxRepo, userRepo, nil)
+	txRepo := mocks.NewTransaction(t)
+	svc := NewTransaction(txRepo, userRepo, nil)
 
 	fromID := 0
 	toID := 1
@@ -25,7 +26,7 @@ func TestSendCoinByName_Success(t *testing.T) {
 
 	userRepo.On("GetByName", mock.Anything, toName).
 		Return(domain.User{ID: toID, Name: toName}, nil)
-	TxRepo.On(
+	txRepo.On(
 		"SendCoin",
 		mock.Anything,
 		domain.Transaction{From: fromID, To: toID, Amount: amount}).
@@ -35,7 +36,7 @@ func TestSendCoinByName_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	userRepo.AssertExpectations(t)
-	TxRepo.AssertExpectations(t)
+	txRepo.AssertExpectations(t)
 }
 
 func TestSendCoinByName_SelfSending(t *testing.T) {
@@ -56,7 +57,7 @@ func TestSendCoinByName_SelfSending(t *testing.T) {
 	err := svc.SendCoinByName(ctx, domain.Transaction{From: fromID, Amount: amount}, toName)
 
 	require.Error(t, err)
-	require.ErrorIs(t, err, domain.ErrBadRequest)
+	require.ErrorIs(t, err, domain.ErrSelfSending)
 	userRepo.AssertExpectations(t)
 }
 
@@ -105,8 +106,8 @@ func TestSendCoinByName_MakingTxDBError(t *testing.T) {
 	t.Parallel()
 
 	userRepo := mocks.NewUser(t)
-	TxRepo := mocks.NewTransaction(t)
-	svc := NewTransaction(TxRepo, userRepo, nil)
+	txRepo := mocks.NewTransaction(t)
+	svc := NewTransaction(txRepo, userRepo, nil)
 
 	fromID := 0
 	toID := 1
@@ -116,7 +117,7 @@ func TestSendCoinByName_MakingTxDBError(t *testing.T) {
 
 	userRepo.On("GetByName", mock.Anything, toName).
 		Return(domain.User{ID: toID, Name: toName}, nil)
-	TxRepo.On(
+	txRepo.On(
 		"SendCoin",
 		mock.Anything,
 		domain.Transaction{From: fromID, To: toID, Amount: amount}).
@@ -126,15 +127,15 @@ func TestSendCoinByName_MakingTxDBError(t *testing.T) {
 
 	require.Error(t, err)
 	userRepo.AssertExpectations(t)
-	TxRepo.AssertExpectations(t)
+	txRepo.AssertExpectations(t)
 }
 
 func TestBuyItemByName_Success(t *testing.T) {
 	t.Parallel()
 
-	TxRepo := mocks.NewTransaction(t)
+	txRepo := mocks.NewTransaction(t)
 	merchRepo := mocks.NewMerch(t)
-	svc := NewTransaction(TxRepo, nil, merchRepo)
+	svc := NewTransaction(txRepo, nil, merchRepo)
 
 	buyerID := 0
 	merch := domain.Merch{
@@ -146,13 +147,13 @@ func TestBuyItemByName_Success(t *testing.T) {
 
 	merchRepo.On("GetByName", mock.Anything, merch.Name).
 		Return(merch, nil)
-	TxRepo.On("BuyItem", mock.Anything, buyerID, merch).
+	txRepo.On("BuyItem", mock.Anything, buyerID, merch).
 		Return(nil)
 
 	err := svc.BuyItemByName(ctx, buyerID, merch.Name)
 
 	require.NoError(t, err)
-	TxRepo.AssertExpectations(t)
+	txRepo.AssertExpectations(t)
 }
 
 func TestBuyItemByName_InvalidMerchName(t *testing.T) {
@@ -184,9 +185,7 @@ func TestBuyItemByName_CheckingMerchNameDBError(t *testing.T) {
 
 	buyerID := 0
 	merch := domain.Merch{
-		ID:    1,
-		Name:  "AvitoHoody",
-		Price: 100,
+		Name: "AvitoHoody",
 	}
 	ctx := context.Background()
 
@@ -201,9 +200,9 @@ func TestBuyItemByName_CheckingMerchNameDBError(t *testing.T) {
 func TestBuyItemByName_PurchaseDBError(t *testing.T) {
 	t.Parallel()
 
-	TxRepo := mocks.NewTransaction(t)
+	txRepo := mocks.NewTransaction(t)
 	merchRepo := mocks.NewMerch(t)
-	svc := NewTransaction(TxRepo, nil, merchRepo)
+	svc := NewTransaction(txRepo, nil, merchRepo)
 
 	buyerID := 0
 	merch := domain.Merch{
@@ -215,11 +214,11 @@ func TestBuyItemByName_PurchaseDBError(t *testing.T) {
 
 	merchRepo.On("GetByName", mock.Anything, merch.Name).
 		Return(merch, nil)
-	TxRepo.On("BuyItem", mock.Anything, buyerID, merch).
+	txRepo.On("BuyItem", mock.Anything, buyerID, merch).
 		Return(errors.New("cool error - tx is down"))
 
 	err := svc.BuyItemByName(ctx, buyerID, merch.Name)
 
 	require.Error(t, err)
-	TxRepo.AssertExpectations(t)
+	txRepo.AssertExpectations(t)
 }

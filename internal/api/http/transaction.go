@@ -8,10 +8,11 @@ import (
 	"avito_shop/pkg/http/handlers"
 	resp "avito_shop/pkg/http/responses"
 	pkglog "avito_shop/pkg/log"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type TransactionHandler struct {
@@ -33,13 +34,24 @@ const (
 
 func (h *TransactionHandler) WithSecuredTransactionHandlers(authService usecases.Auth) handlers.RouterOption {
 	return func(r chi.Router) {
-		r.With(libmiddleware.WithTokenAuth(authService)).Group(func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(libmiddleware.WithTokenAuth(authService))
 			handlers.AddHandler(r.Post, postSendCoinPath, h.postSendCoin)
 			handlers.AddHandler(r.Get, getBuyItemPath, h.getBuyItem)
 		})
 	}
 }
 
+// @Summary	Отправить монеты другому пользователю
+// @Security	BearerAuth
+// @Accept		json
+// @Produce	json
+// @Param		body	body	types.PostSendCoinRequest	true "Данные для отправки монет"
+// @Success	200		"Успешный ответ"
+// @Failure	400		{object}	responses.ErrorResponse	"Неверный запрос"
+// @Failure	401		{object}	responses.ErrorResponse	"Неавторизован"
+// @Failure	500		{object}	responses.ErrorResponse	"Внутренняя ошибка сервера"
+// @Router		/api/sendCoin [post]
 func (h *TransactionHandler) postSendCoin(r *http.Request) resp.Response {
 	const op = "TransactionHandler.postSendCoin"
 	uid, err := libmiddleware.GetUserIDFromContext(r)
@@ -74,6 +86,16 @@ func (h *TransactionHandler) postSendCoin(r *http.Request) resp.Response {
 	return domain.HandleResult(nil, nil)
 }
 
+// @Summary	Купить предмет за монеты
+// @Security	BearerAuth
+// @Accept		json
+// @Produce	json
+// @Param		item	path	string	true	"Название товара"
+// @Success	200		"Успешный ответ"
+// @Failure	400		{object}	responses.ErrorResponse	"Неверный запрос"
+// @Failure	401		{object}	responses.ErrorResponse	"Неавторизован"
+// @Failure	500		{object}	responses.ErrorResponse	"Внутренняя ошибка сервера"
+// @Router		/api/buy/{item} [get]
 func (h *TransactionHandler) getBuyItem(r *http.Request) resp.Response {
 	const op = "TransactionHandler.getBuyItem"
 	uid, err := libmiddleware.GetUserIDFromContext(r)

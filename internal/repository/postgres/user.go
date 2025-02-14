@@ -7,10 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
 )
 
 type UserRepository struct {
@@ -52,22 +53,6 @@ func (r *UserRepository) Put(ctx context.Context, user domain.User) (domain.User
 	}
 
 	return id, nil
-}
-
-func (r *UserRepository) GetByID(ctx context.Context, id domain.UserID) (domain.User, error) {
-	user := domain.User{ID: id}
-	query := `SELECT username, hashed_password, coins FROM Employees
-              WHERE id = $1`
-
-	err := r.pool.QueryRow(ctx, query, id).Scan(&user.Name, &user.HashedPassword, &user.Info.Coins)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.User{}, fmt.Errorf("UserRepository.GetByID: %w", domain.ErrUserNotFound)
-		}
-		return domain.User{}, fmt.Errorf("UserRepository.GetByID: %w", err)
-	}
-
-	return user, nil
 }
 
 func (r *UserRepository) GetByName(ctx context.Context, name domain.UserName) (domain.User, error) {
@@ -134,7 +119,6 @@ func (r *UserRepository) GetInfoByID(ctx context.Context, id domain.UserID) (dom
 		Inventory:    inv,
 		Transactions: txHistory,
 	}, nil
-
 }
 
 func (r *UserRepository) getCoinsTx(ctx context.Context, tx pgx.Tx, id domain.UserID) (int, error) {
@@ -152,16 +136,21 @@ func (r *UserRepository) getCoinsTx(ctx context.Context, tx pgx.Tx, id domain.Us
 	return coins, nil
 }
 
-func (r *UserRepository) getTxHistoryTx(ctx context.Context, tx pgx.Tx, id domain.UserID) ([]domain.UserTransaction, error) {
+func (r *UserRepository) getTxHistoryTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	id domain.UserID,
+) ([]domain.UserTransaction, error) {
 	query := `SELECT 
     		  ct.sender,
-    		  e_from.username,
-    		  e_to.username,
+    		  COALESCE(e_from.username, 'deleted'),
+    		  COALESCE(e_to.username, 'deleted'),
     		  ct.amount
 			  FROM coin_transactions ct
               LEFT JOIN employees e_from ON ct.sender = e_from.id
               LEFT JOIN employees e_to   ON ct.recipient = e_to.id
-              WHERE ct.sender = $1 OR ct.recipient = $1`
+              WHERE ct.sender = $1 OR ct.recipient = $1
+              ORDER BY ct.created_at DESC`
 
 	rows, err := tx.Query(ctx, query, id)
 	if err != nil {
@@ -176,24 +165,24 @@ func (r *UserRepository) getTxHistoryTx(ctx context.Context, tx pgx.Tx, id domai
 	for rows.Next() {
 		var (
 			idFrom   domain.UserID
-			nameFrom domain.UserName
-			nameTo   domain.UserName
-			UserTx   domain.UserTransaction
+			nameFrom = "deleted"
+			nameTo   = "deleted"
+			userTX   domain.UserTransaction
 		)
 
-		if err = rows.Scan(&idFrom, &nameFrom, &nameTo, &UserTx.Amount); err != nil {
+		if err = rows.Scan(&idFrom, &nameFrom, &nameTo, &userTX.Amount); err != nil {
 			return nil, fmt.Errorf("UserRepository.getTxHistoryTx: %w", err)
 		}
 
 		if idFrom == id {
-			UserTx.OtherUser = nameTo
-			UserTx.Direction = domain.Sent
+			userTX.OtherUser = nameTo
+			userTX.Direction = domain.Sent
 		} else {
-			UserTx.OtherUser = nameFrom
-			UserTx.Direction = domain.Received
+			userTX.OtherUser = nameFrom
+			userTX.Direction = domain.Received
 		}
 
-		txHistory = append(txHistory, UserTx)
+		txHistory = append(txHistory, userTX)
 	}
 
 	return txHistory, nil

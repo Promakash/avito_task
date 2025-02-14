@@ -6,9 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 const CacheAlwaysAlive = redis.KeepTTL
@@ -25,11 +26,11 @@ func NewRedisClient(cfg Config) (*redis.Client, error) {
 		Password:     cfg.Password,
 		WriteTimeout: cfg.WriteTimeout,
 		ReadTimeout:  cfg.ReadTimeout,
-		DB:           0,
-		Protocol:     3,
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	const ctxTimeExceed = 10 * time.Second
+
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeExceed)
 	defer cancel()
 
 	_, err := rdb.Ping(ctx).Result()
@@ -55,13 +56,13 @@ func (r *Redis) Set(ctx context.Context, key string, value interface{}, ttl time
 
 	bytes, err := json.Marshal(value)
 	if err != nil {
-		log.Error("error while marshalling json", pkglog.Err(err))
+		log.ErrorContext(ctx, "error while marshalling json", pkglog.Err(err))
 		return err
 	}
 
 	err = r.client.Set(ctx, key, bytes, ttl).Err()
 	if err != nil {
-		log.Error("error while setting new data", pkglog.Err(err))
+		log.ErrorContext(ctx, "error while setting new data", pkglog.Err(err))
 		return err
 	}
 
@@ -76,13 +77,13 @@ func (r *Redis) Get(ctx context.Context, key string, value interface{}) error {
 
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {
-		log.Error("error while getting data", pkglog.Err(err))
+		log.ErrorContext(ctx, "error while getting data", pkglog.Err(err))
 		return err
 	}
 
 	err = json.Unmarshal([]byte(val), value)
 	if err != nil {
-		log.Error("error while unmarshalling data", pkglog.Err(err))
+		log.ErrorContext(ctx, "error while unmarshalling data", pkglog.Err(err))
 		return err
 	}
 
@@ -97,7 +98,7 @@ func (r *Redis) Delete(ctx context.Context, keys ...string) error {
 
 	err := r.client.Del(ctx, keys...).Err()
 	if err != nil {
-		log.Error("error while deleting data", pkglog.Err(err))
+		log.ErrorContext(ctx, "error while deleting data", pkglog.Err(err))
 		return err
 	}
 
@@ -105,7 +106,9 @@ func (r *Redis) Delete(ctx context.Context, keys ...string) error {
 }
 
 func ShutdownClient(client *redis.Client) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	const ctxTimeExceed = 10 * time.Second
+
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeExceed)
 	defer cancel()
 	_ = client.Shutdown(ctx)
 }

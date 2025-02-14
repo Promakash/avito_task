@@ -3,15 +3,16 @@ package infra
 import (
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PostgresConfig struct {
-	Host     string `yaml:"host" env-required:"true"`
-	Port     int    `yaml:"port" env-required:"true"`
-	User     string `yaml:"user" env-required:"true"`
-	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"db_name" env-required:"true"`
+	Host     string `env:"DATABASE_HOST" yaml:"host" env-required:"true"`
+	Port     int    `env:"DATABASE_PORT" yaml:"port" env-required:"true"`
+	User     string `env:"DATABASE_USER" yaml:"user" env-required:"true"`
+	Password string `env:"DATABASE_PASSWORD" yaml:"password" env-required:"true"`
+	DBName   string `env:"DATABASE_NAME" yaml:"db_name" env-required:"true"`
 }
 
 func NewPostgresPool(cfg PostgresConfig) (*pgxpool.Pool, error) {

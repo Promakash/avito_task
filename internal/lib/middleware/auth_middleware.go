@@ -12,7 +12,9 @@ import (
 
 var ErrContextParsing = errors.New("can't parse from context")
 
-const AuthContextKey = "user_id"
+type UserIDCtxKey string
+
+const AuthContextKey UserIDCtxKey = "user_id"
 
 func WithTokenAuth(authService usecases.Auth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

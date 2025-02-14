@@ -1,0 +1,69 @@
+run:
+  timeout: 5m
+
+linters-settings:
+  lll:
+    line-length: 120
+    ignore-comments: true
+
+  errcheck:
+    check-type-assertions: true
+
+  funlen:
+    lines: 120
+    statements: 60
+    ignore-comments: true
+    ignore-doc-comments: true
+
+  gocognit:
+    min-complexity: 25
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+    settings:
+      shadow:
+        strict: true
+
+  gocritic:
+    settings:
+      captLocal:
+        paramsOnly: false
+      underef:
+        skipRecvDeref: false
+
+linters:
+  disable-all: true
+  enable:
+    - lll
+    - goimports
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - goimports
+    - gosec
+    - revive
+    - unconvert
+    - unparam
+    - whitespace
+    - stylecheck
+    - testifylint
+
+issues:
+  max-same-issues: 10
+  exclude-rules:
+    - path: "_test\\.go"
+      linters:
+        - errcheck
+        - funlen
+        - goconst
+        - gosec

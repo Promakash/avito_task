@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "avito_shop/docs"
 	httpapp "avito_shop/internal/app/http"
 	"avito_shop/internal/config"
 	"avito_shop/internal/repository/postgres"
@@ -12,15 +13,24 @@ import (
 	"avito_shop/pkg/shutdown"
 	"context"
 	"errors"
-	"golang.org/x/sync/errgroup"
 	"log/slog"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 const (
 	ConfigEnvVar = "SHOP_CONFIG"
 	APIPath      = "/api"
 )
+
+//	@title						API Avito Shop
+//	@version					1.0.0
+//	@schemes					http
+//	@host						localhost:8080
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
 
 func main() {
 	cfg := config.Config{}
@@ -73,9 +83,11 @@ func main() {
 
 	g.Go(func() error {
 		<-ctx.Done()
-		log.Info("Shutdown signal received, stopping server")
+		log.InfoContext(ctx, "Shutdown signal received, stopping server")
 
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		const ctxTimeExceed = 5 * time.Second
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), ctxTimeExceed)
 		defer cancel()
 		return httpApp.Stop(shutdownCtx)
 	})

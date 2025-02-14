@@ -5,10 +5,11 @@ import (
 	"avito_shop/internal/repository/mocks"
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-	"testing"
 )
 
 const secretForTests string = "secret"

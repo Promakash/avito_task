@@ -1,23 +1,23 @@
-package types_test
+package types
 
 import (
-	"avito_shop/internal/api/http/types"
-	"avito_shop/internal/lib/testutils"
-	"github.com/stretchr/testify/require"
+	"avito_shop/pkg/testutils"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreatePostSendCoinRequest_Success(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostSendCoinRequest{
+	req := &PostSendCoinRequest{
 		ToUser: "Avito",
 		Amount: 100,
 	}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	result, err := types.CreatePostSendCoinRequest(httpReq)
+	result, err := CreatePostSendCoinRequest(httpReq)
 
 	require.NoError(t, err)
 	require.Equal(t, req, result)
@@ -26,13 +26,13 @@ func TestCreatePostSendCoinRequest_Success(t *testing.T) {
 func TestCreatePostSendCoinRequest_EmptyToUser(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostSendCoinRequest{
+	req := &PostSendCoinRequest{
 		Amount: 100,
 	}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostSendCoinRequest(httpReq)
+	_, err := CreatePostSendCoinRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -40,11 +40,11 @@ func TestCreatePostSendCoinRequest_EmptyToUser(t *testing.T) {
 func TestCreatePostSendCoinRequest_AmountZeroValue(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostSendCoinRequest{ToUser: "Avito"}
+	req := &PostSendCoinRequest{ToUser: "Avito"}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostSendCoinRequest(httpReq)
+	_, err := CreatePostSendCoinRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -52,11 +52,11 @@ func TestCreatePostSendCoinRequest_AmountZeroValue(t *testing.T) {
 func TestCreatePostSendCoinRequest_EmptyReq(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostSendCoinRequest{}
+	req := &PostSendCoinRequest{}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostSendCoinRequest(httpReq)
+	_, err := CreatePostSendCoinRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -68,7 +68,7 @@ func TestCreatePostSendCoinRequest_BrokenJSON(t *testing.T) {
 
 	httpReq := testutils.NewMockJSONRequest(t, brokenJSON)
 
-	_, err := types.CreatePostSendCoinRequest(httpReq)
+	_, err := CreatePostSendCoinRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -78,7 +78,7 @@ func TestCreateGetBuyItemRequest_Success(t *testing.T) {
 
 	httpReq := testutils.NewMockRequestWithItemQueryVal(itemName)
 
-	result, err := types.CreateGetBuyItemRequest(httpReq)
+	result, err := CreateGetBuyItemRequest(httpReq)
 
 	require.NoError(t, err)
 	require.Equal(t, itemName, result.Item)
@@ -89,7 +89,7 @@ func TestCreateGetBuyItemRequest_QueryZeroVal(t *testing.T) {
 
 	httpReq := testutils.NewMockRequestWithItemQueryVal(itemName)
 
-	_, err := types.CreateGetBuyItemRequest(httpReq)
+	_, err := CreateGetBuyItemRequest(httpReq)
 
 	require.Error(t, err)
 }

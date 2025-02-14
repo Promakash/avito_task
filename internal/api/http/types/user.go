@@ -34,7 +34,6 @@ func CreateGetInfoResponse(info domain.UserInfo) *GetInfoResponse {
 				Amount:   tx.Amount,
 			}
 			incoming = append(incoming, recTx)
-
 		} else {
 			sentTx := CoinHistoryUpcoming{
 				ToUser: tx.OtherUser,

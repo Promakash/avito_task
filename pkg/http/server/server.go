@@ -20,7 +20,13 @@ func NewServer(addr string, handler http.Handler, readTimeout, writeTimeout, idl
 	}
 }
 
-func RunServer(ctx context.Context, addr string, handler http.Handler, readTimeout, writeTimeout, idleTimeout time.Duration) error {
+func RunServer(
+	ctx context.Context,
+	addr string,
+	handler http.Handler,
+	readTimeout,
+	writeTimeout,
+	idleTimeout time.Duration) error {
 	const op = "server.RunServer"
 
 	slog.With(slog.String("op", op), slog.String("address", addr)).Info("Starting http server")

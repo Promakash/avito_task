@@ -33,7 +33,7 @@ func (s *Transaction) SendCoinByName(ctx context.Context, tx domain.Transaction,
 	}
 
 	if toUser.ID == tx.From {
-		return fmt.Errorf("TxService.SendCoinByName: can't allow selfsending: %w", domain.ErrBadRequest)
+		return fmt.Errorf("TxService.SendCoinByName: can't allow selfsending: %w", domain.ErrSelfSending)
 	}
 	tx.To = toUser.ID
 

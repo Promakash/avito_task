@@ -3,20 +3,22 @@ package http
 import (
 	"avito_shop/internal/api/http/types"
 	"avito_shop/internal/domain"
-	"avito_shop/internal/lib/testutils"
 	"avito_shop/internal/usecases/mocks"
+	"avito_shop/pkg/testutils"
 	"errors"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
+	"log/slog"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPostSendCoin_Success(t *testing.T) {
 	t.Parallel()
 
 	svc := mocks.NewTransaction(t)
-	h := NewTransactionHandler(testutils.NewDummyLogger(), svc)
+	h := NewTransactionHandler(slog.Default(), svc)
 
 	uID := 2
 	req := types.PostSendCoinRequest{
@@ -61,7 +63,7 @@ func TestPostSendCoin_BadRequestCases(t *testing.T) {
 	}{
 		{"Empty toUser", types.PostSendCoinRequest{Amount: 100}},
 		{"Empty amount", types.PostSendCoinRequest{ToUser: "Avito"}},
-		{"Empty Request", types.PostAuthRequest{}},
+		{"Empty Request", types.PostSendCoinRequest{}},
 		{"Broken JSON", []byte("{\"toUser\":\"avito\",\"amount\":\"100\"")},
 	}
 
@@ -75,7 +77,6 @@ func TestPostSendCoin_BadRequestCases(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode())
 	}
-
 }
 
 func TestPostSendCoin_ServiceErrors(t *testing.T) {
@@ -87,7 +88,7 @@ func TestPostSendCoin_ServiceErrors(t *testing.T) {
 		ExpCode int
 	}{
 		{"ToUser doesn't exist", domain.ErrUserNotFound, http.StatusBadRequest},
-		{"SelfSending", domain.ErrBadRequest, http.StatusBadRequest},
+		{"Sending money to yourself", domain.ErrSelfSending, http.StatusBadRequest},
 		{"Low balance", domain.ErrLowBalance, http.StatusBadRequest},
 		{"Unexpected DBError", errors.New("unexpected DBError"), http.StatusInternalServerError},
 	}
@@ -175,7 +176,6 @@ func TestGetBuyItemCoin_BadRequestCases(t *testing.T) {
 
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode())
 	}
-
 }
 
 func TestGetBuyItemCoin_ServiceErrors(t *testing.T) {

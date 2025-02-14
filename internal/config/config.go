@@ -19,5 +19,5 @@ type Config struct {
 	PG         infra.PostgresConfig `yaml:"postgres" env-required:"true"`
 	Redis      redis.Config         `yaml:"redis" env-required:"true"`
 	Logger     pkglog.Config        `yaml:"logger" env-required:"true"`
-	AuthSecret string               `env:"auth_secret" env-required:"true"`
+	AuthSecret string               `env:"AUTH_SECRET" env-required:"true"`
 }

@@ -1,23 +1,23 @@
-package types_test
+package types
 
 import (
-	"avito_shop/internal/api/http/types"
-	"avito_shop/internal/lib/testutils"
-	"github.com/stretchr/testify/require"
+	"avito_shop/pkg/testutils"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreatePostAuthRequest_Success(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostAuthRequest{
+	req := &PostAuthRequest{
 		Username: "Avito",
 		Password: "12345",
 	}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	result, err := types.CreatePostAuthRequest(httpReq)
+	result, err := CreatePostAuthRequest(httpReq)
 
 	require.NoError(t, err)
 	require.Equal(t, req, result)
@@ -26,13 +26,13 @@ func TestCreatePostAuthRequest_Success(t *testing.T) {
 func TestCreatePostAuthRequest_EmptyUsername(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostAuthRequest{
+	req := &PostAuthRequest{
 		Password: "12345",
 	}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostAuthRequest(httpReq)
+	_, err := CreatePostAuthRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -40,13 +40,13 @@ func TestCreatePostAuthRequest_EmptyUsername(t *testing.T) {
 func TestCreatePostAuthRequest_EmptyPassword(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostAuthRequest{
+	req := &PostAuthRequest{
 		Username: "Avito",
 	}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostAuthRequest(httpReq)
+	_, err := CreatePostAuthRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -54,11 +54,11 @@ func TestCreatePostAuthRequest_EmptyPassword(t *testing.T) {
 func TestCreatePostAuthRequest_EmptyReq(t *testing.T) {
 	t.Parallel()
 
-	req := &types.PostAuthRequest{}
+	req := &PostAuthRequest{}
 
 	httpReq := testutils.NewMockJSONRequest(t, req)
 
-	_, err := types.CreatePostAuthRequest(httpReq)
+	_, err := CreatePostAuthRequest(httpReq)
 
 	require.Error(t, err)
 }
@@ -70,7 +70,7 @@ func TestCreatePostAuthRequest_BrokenJSON(t *testing.T) {
 
 	httpReq := testutils.NewMockJSONRequest(t, brokenJSON)
 
-	_, err := types.CreatePostAuthRequest(httpReq)
+	_, err := CreatePostAuthRequest(httpReq)
 
 	require.Error(t, err)
 }

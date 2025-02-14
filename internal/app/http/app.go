@@ -17,7 +17,7 @@ type App struct {
 
 func New(
 	log *slog.Logger,
-	APIPath string,
+	apiPath string,
 	authService usecases.Auth,
 	userService usecases.User,
 	txService usecases.Transaction,
@@ -39,16 +39,16 @@ func New(
 	)
 
 	publicHandler := handlers.NewHandler(
-		APIPath,
-		handlers.WithLogging(log),
-		handlers.WithProfilerHandlers(),
+		apiPath,
 		handlers.WithRequestID(),
 		handlers.WithRecover(),
+		handlers.WithLogging(log),
+		handlers.WithProfilerHandlers(),
 		handlers.WithHealthHandler(),
-		handlers.WithErrHandlers(),
-		authHandler.WithAuthHandlers(),
+		handlers.WithSwagger(),
 		userHandler.WithSecuredUserHandlers(authService),
 		txHandler.WithSecuredTransactionHandlers(authService),
+		authHandler.WithAuthHandlers(),
 	)
 
 	srv := &http.Server{

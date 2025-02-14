@@ -5,8 +5,9 @@ import (
 	"avito_shop/pkg/http/handlers"
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type PostSendCoinRequest struct {

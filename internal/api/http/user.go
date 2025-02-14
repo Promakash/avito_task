@@ -8,10 +8,11 @@ import (
 	"avito_shop/pkg/http/handlers"
 	resp "avito_shop/pkg/http/responses"
 	pkglog "avito_shop/pkg/log"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type UserHandler struct {
@@ -30,12 +31,22 @@ const getInfoPath = "/info"
 
 func (h *UserHandler) WithSecuredUserHandlers(authService usecases.Auth) handlers.RouterOption {
 	return func(r chi.Router) {
-		r.With(libmiddleware.WithTokenAuth(authService)).Group(func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(libmiddleware.WithTokenAuth(authService))
 			handlers.AddHandler(r.Get, getInfoPath, h.getInfo)
 		})
 	}
 }
 
+// @Summary Получить информацию о монетах, инвентаре и истории транзакций
+// @Security BearerAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} types.GetInfoResponse "Успешный ответ"
+// @Failure 400 {object} responses.ErrorResponse "Неверный запрос"
+// @Failure 401 {object} responses.ErrorResponse "Неавторизован"
+// @Failure 500 {object} responses.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /api/info [get]
 func (h *UserHandler) getInfo(r *http.Request) resp.Response {
 	const op = "UserHandler.getInfo"
 	uid, err := libmiddleware.GetUserIDFromContext(r)
