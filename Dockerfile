@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o shortener-app cmd/main.go
+RUN go build -o avito-shop-service cmd/main.go
 
 FROM alpine AS runner
 
@@ -16,7 +16,9 @@ RUN apk add --no-cache curl
 
 WORKDIR /app
 
-COPY --from=build /build/shortener-app ./
+COPY --from=build /build/avito-shop-service ./
 COPY --from=build /build/config ./config/
 
-CMD ["./shortener-app"]
+EXPOSE 8080
+
+CMD ["./avito-shop-service"]

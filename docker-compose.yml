@@ -10,23 +10,35 @@ services:
       user-cache:
         condition: service_healthy
     environment:
-      - SHOP_CONFIG=config/docker.yml
-      - AUTH_SECRET=very_secret
+      - SHOP_CONFIG=config/docker.yml # Путь до конфига
+      - AUTH_SECRET=very_secret # JWT secret
+      # Енвы подключения к postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=password
       - DATABASE_NAME=shop
       - DATABASE_HOST=db
+      # Енвы подключения к redis
       - CACHE_PORT=6379
       - CACHE_PASSWORD=redis
       - CACHE_HOST=user-cache
-      - CACHE_TTL = 30m
-      - CACHE_WRITE_TIMEOUT = 3s
-      - CACHE_READ_TIMEOUT = 2s
+      - CACHE_TTL=30m
+      - CACHE_WRITE_TIMEOUT=3s
+      - CACHE_READ_TIMEOUT=2s
+      # Енвы HTTP сервера
+      - SERVER_ADDRESS=:8080
+      # Необязательные енвы (при их отсутствии выставятся из конфига или по умолчанию)
+      - SERVER_READ_TIMEOUT=5s
+      - SERVER_WRITE_TIMEOUT=5s
+      - SERVER_IDLE_TIMEOUT=30s
+      # Енвы логгера (не обязательны)
+      - LOGGER_LEVEL=debug
+      - LOGGER_FORMAT=text
+      - LOGS_DIRECTORY=/app/logs
     volumes:
       - ./logs/avito-shop:/app/logs
     healthcheck:
-      test: curl --fail http://localhost:8080/api/health || exit 1
+      test: ["CMD-SHELL", "sh -c 'curl --fail http://localhost:8080/api/health || exit 1'"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -54,17 +66,17 @@ services:
       - internal
 
   user-cache:
+    image: redis:7.4.2-alpine
+    container_name: user-cache
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: redis
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
+      test: ["CMD-SHELL", "sh -c 'redis-cli ping'"]
       interval: 10s
       timeout: 5s
       retries: 3
-    image: redis:latest
-    container_name: user-cache
-    environment:
-      REDIS_PASSWORD: redis
-    ports:
-      - "6379:6379"
     networks:
       - internal
 

@@ -39,7 +39,7 @@ func main() {
 	log, file := pkglog.NewLogger(cfg.Logger)
 	defer func() { _ = file.Close() }()
 	slog.SetDefault(log)
-	log.Info("Starting Avito Shop", slog.Any("config", cfg))
+	log.Info("Starting Avito Shop", slog.Any("config", cfg.Redact()))
 
 	dbPool, err := infra.NewPostgresPool(cfg.PG)
 	if err != nil {
