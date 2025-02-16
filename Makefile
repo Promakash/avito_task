@@ -18,3 +18,6 @@ lint_code:
 
 run_tests:
 	docker compose run --rm tests
+
+run_unit_tests:
+	go test ./internal/...

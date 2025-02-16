@@ -13,9 +13,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Build
         run: make build
+
       - name: Launch
         run: make run
+
       - name: Tests
         run: make run_tests

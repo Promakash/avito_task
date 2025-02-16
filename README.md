@@ -80,6 +80,11 @@ make run_tests
 ```
 
 ```bash
+# Запуск юнит тестов 
+make run_unit_tests
+```
+
+```bash
 # Остановка всех сервисов
 make stop
 ```
